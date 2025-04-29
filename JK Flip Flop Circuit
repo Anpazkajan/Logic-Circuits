@@ -1,0 +1,258 @@
+class LogicGate:
+    def __init__(self, n):
+        self.name = n
+        self.output = None
+
+    def getLabel(self):
+        return self.name
+
+    def getOutput(self):
+        self.output = self.performGateLogic()
+        return self.output
+
+
+class BinaryGate(LogicGate):
+    def __init__(self, n):
+        super(BinaryGate, self).__init__(n)
+        self.pinA = None
+        self.pinB = None
+
+    def getPinA(self):
+        if self.pinA == None:
+            return int(input("Enter Pin A input for gate " + self.getLabel() + "-->"))
+        else:
+            return self.pinA.getFrom().getOutput()
+
+    def getPinB(self):
+        if self.pinB == None:
+            return int(input("Enter Pin B input for gate " + self.getLabel() + "-->"))
+        else:
+            return self.pinB.getFrom().getOutput()
+
+    def setNextPin(self, source):
+        if self.pinA == None:
+            self.pinA = source
+        else:
+            if self.pinB == source:
+                print("Cannot Connect: NO EMPTY PINS on this gate")
+            else:
+                self.pinB = source
+                
+
+
+class AndGate(BinaryGate):
+    def __init__(self, n):
+        BinaryGate.__init__(self, n)
+
+    def performGateLogic(self):
+        a = self.getPinA()
+        b = self.getPinB()
+        if a == 1 and b == 1:
+            return 1
+        else:
+            return 0
+
+
+class NandGate(BinaryGate):
+    def __init__(self, n):
+        BinaryGate.__init__(self, n)
+
+    def performGateLogic(self):
+        a = self.getPinA()
+        b = self.getPinB()
+        if a == 1 and b == 1:
+            return 0
+        else:
+            return 1
+
+
+class OrGate(BinaryGate):
+    def __init__(self, n):
+        BinaryGate.__init__(self, n)
+
+    def performGateLogic(self):
+        a = self.getPinA()
+        b = self.getPinB()
+        if a == 1 or b == 1:
+            return 1
+        else:
+            return 0
+
+
+class NorGate(BinaryGate):
+    def __init__(self, n):
+        BinaryGate.__init__(self, n)
+
+    def performGateLogic(self):
+        a = self.getPinA()
+        b = self.getPinB()
+        if a == 1 or b == 1:
+            return 0
+        else:   
+            return 1
+
+
+class XorGate(BinaryGate):
+    def __init__(self, n):
+        BinaryGate.__init__(self, n)
+
+    def performGateLogic(self):
+        a = self.getPinA()
+        b = self.getPinB()
+        if a != b:
+            return 1
+        else:
+            return 0
+
+
+class XnorGate(BinaryGate):
+    def __init__(self, n):
+        BinaryGate.__init__(self, n)
+
+    def performGateLogic(self):
+        a = self.getPinA()
+        b = self.getPinB()
+        if a != b:
+            return 0
+        else:
+            return 1
+
+
+class JKFlipFlop(BinaryGate):
+    def __init__(self, n):
+        BinaryGate.__init__(self, n)
+        self.Qcurrent = 0
+        self.QNext = 0
+        self.visited = False
+
+    def performGateLogic(self):
+        if self.visited:
+            return self.Qcurrent
+        self.visited = True
+
+        j = self.getPinA()
+        k = self.getPinB()
+        if j == 0 and k == 0:
+            self.QNext = self.Q
+        elif j == 0 and k == 1:
+            self.QNext = 0
+        elif j == 1 and k == 0:
+            self.QNext = 1
+        elif j == 1 and k == 1:
+            self.QNext = 1 - self.Q
+
+        self.Qcurrent = self.QNext
+        return self.Qcurrent
+
+class UnaryGate(LogicGate):
+    def __init__(self, n):
+        LogicGate.__init__(self, n)
+        self.pin = None
+        self.input_value = None
+
+    def getPin(self):
+        if self.pin is None:
+            if self.input_value is None:
+                self.input_value = int(input("Enter Pin input for gate " + self.getLabel() + "-->"))
+                return self.input_value
+            else:
+                return self.pin.getFrom().getOutput()
+
+    def setNextPin(self, source):
+        if self.pin is None:
+            self.pin = source
+        else:
+            print("Cannot Connect: NO EMPTY PINS on this gate")
+
+
+class NotGate(UnaryGate):
+    def __init__(self, n):
+        UnaryGate.__init__(self, n)
+
+    def performGateLogic(self):
+        if self.getPin():
+            return 0
+        else:
+            return 1
+
+class Power(UnaryGate):
+    def __init__(self, n):
+        UnaryGate.__init__(self, n)
+
+    def performGateLogic(self):
+        return 1
+
+
+class Switch(UnaryGate):
+    def __init__(self, n):
+        UnaryGate.__init__(self, n)
+
+    def performGateLogic(self):
+        return self.getPin()
+
+class Same(UnaryGate):
+    def __init__(self, n, val):
+        UnaryGate.__init__(self, n)
+        self.val = val
+
+    def performGateLogic(self):
+        return self.val
+
+
+class Connector:
+    def __init__(self, fgate, tgate):
+        self.fromgate = fgate
+        self.togate = tgate
+        tgate.setNextPin(self)
+
+    def getFrom(self):
+        return self.fromgate
+
+    def getTo(self):
+        return self.togate
+
+
+def main():
+    p1 = Power("P1")
+    s1 = Switch("S1")
+    a1 = AndGate("A1")
+    n1 = NotGate("N1")
+    a2 = AndGate("A2")
+    j1 = JKFlipFlop("F1")
+    j2 = JKFlipFlop("F2")
+    a3 = AndGate("A3")
+    n2 = NotGate("N2")
+    n3 = NotGate("N3")
+    Pr1 = Same("1", 0)
+    Pr2 = Same("2", 0)
+    Connector(Pr1, a1)
+    Connector(Pr2, n3) 
+    Connector(s1, a1)
+    Connector(Pr1, a1)
+    Connector(a1, j1)
+    Connector(s1, n1)
+    Connector(n1, j1)
+    Connector(n3, a2)
+    Connector(s1, a2)
+    Connector(a2, j2)
+    Connector(p1, j2)
+    Connector(Pr2, n2)
+    Connector(n2, a3)
+    Connector(Pr1, a3)
+
+    for i in range(13):
+        j1.visited = False
+        j2.visited = False
+        s1.input_value = None
+        output = a3.getOutput()
+        outputa = j1.getOutput()
+        outputb = j2.getOutput()
+        if output == 1:
+            print(i+1, "pulse sent")
+        if output == 0:
+            print(i+1, "no pulse")
+        Pr2.val = j1.Qcurrent
+        Pr1.val = j2.Qcurrent
+
+main()
+
